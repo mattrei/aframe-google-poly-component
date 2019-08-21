@@ -49,3 +49,6 @@ Then require and use.
 require('aframe');
 require('aframe-google-poly-component');
 ```
+
+#### Credits
+The code is heavily inspired by the [A-Frame GBlock Component](https://github.com/archilogic-com/aframe-gblock)! Thanks for that!
