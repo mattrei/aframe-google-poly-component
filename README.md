@@ -11,7 +11,9 @@ For [A-Frame](https://aframe.io).
 
 | Property | Description | Default Value |
 | -------- | ----------- | ------------- |
-|          |             |               |
+| apiKey | Google Poly API Key |               |
+| src | Google Poly Model Identifier |               |
+| normalize | Scale the geometry to a unit of 1 and translate the geometry to `0 0 0` | `true` |
 
 ### Installation
 
