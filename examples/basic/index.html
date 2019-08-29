@@ -11,8 +11,12 @@
   <body>
     <a-scene environment="preset: forest">
       <a-entity position="0 1.6 -2">
-        <a-entity google-poly="apiKey: AIzaSyBLFr0cInKQKopG1TsmIpZc5MJbp3SBZm4; src: c3lXOu8gooq" position="-1 0 0"></a-entity>
-        <a-entity google-poly="apiKey: AIzaSyBLFr0cInKQKopG1TsmIpZc5MJbp3SBZm4; src: 6pwiq7hSrHr" scale="2 2 2" position="0 0.5 0"></a-entity>
+        <a-entity google-poly="apiKey: AIzaSyBLFr0cInKQKopG1TsmIpZc5MJbp3SBZm4; src: c3lXOu8gooq" position="-1 0 0"
+                  animation="property: scale; from: 1 1 1; to: 1.4 1.4 1.4; loop: true; easing: linear; dur: 3000; dir: alternate"
+        ></a-entity>
+        <a-entity google-poly="apiKey: AIzaSyBLFr0cInKQKopG1TsmIpZc5MJbp3SBZm4; src: 6pwiq7hSrHr" scale="2 2 2" position="0 0.5 0"
+                  animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; easing: linear; dur: 5000"
+        ></a-entity>
         <a-entity google-poly="apiKey: AIzaSyBLFr0cInKQKopG1TsmIpZc5MJbp3SBZm4; src: cwyNyIba6WE" scale="0.5 0.5 0.5" position="1 0 0"></a-entity>
       </a-entity>
     </a-scene>
