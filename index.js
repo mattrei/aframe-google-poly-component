@@ -6,6 +6,8 @@ if (typeof AFRAME === 'undefined') {
 
 const POLY_API_URL = 'https://poly.googleapis.com/v1/assets/'
 
+require('./lib/LegacyGLTFLoader')
+
 /**
  * Google Poly component for A-Frame.
  */
@@ -128,13 +130,13 @@ AFRAME.registerComponent('google-poly', {
           if (info.error !== undefined) {
             return Promise.reject('Poly API error: ' + info.error.message)
           }
-          const format = info.formats.find( format => { return format.formatType === 'GLTF' || format.formatType === 'GLTF2'; } );
+          const format = info.formats.find( format => format.formatType === 'GLTF' || format.formatType === 'GLTF2' );
           if ( format ) {
             const r = info.presentationParams.orientingRotation;
             const quaternion = new THREE.Quaternion(r.x || 0, r.y || 0, r.z || 0, r.w || 1);
-            return {url: format.root.url, quaternion: quaternion}
+            return {url: format.root.url, quaternion: quaternion, format: format.formatType}
           } else {
-            return Promise.reject('Poly asset id:' + id + ' not provided in GLTF2 format.')
+            return Promise.reject('Poly asset id:' + id + ' not provided in GLTF or GLTF2 format.')
           }
         })
 
@@ -153,6 +155,7 @@ AFRAME.registerComponent('google-poly', {
   loadPolyModel: function(data, onProgress) {
     const url = data.url;
     const quaternion = data.quaternion;
+    const format = data.format;
     const matrix = new THREE.Matrix4().makeRotationFromQuaternion(quaternion);
 
     return new Promise((resolve, reject) => {
@@ -161,17 +164,20 @@ AFRAME.registerComponent('google-poly', {
       loader.setResponseType( 'arraybuffer' )
       loader.load( url, data => {
         try {
-          const gltfLoader = new THREE.GLTFLoader();
+          console.log('loading', url, format)
+          const gltfLoader = format === 'GLTF' ? new THREE.LegacyGLTFLoader() : new THREE.GLTFLoader();
           const path = THREE.LoaderUtils.extractUrlBase(url)
 
           gltfLoader.parse( data, path, gltf => {
             gltf.scene.traverse(function (child) {
+              if (format === 'GLTF' && child.material) child.material = new THREE.MeshStandardMaterial({ vertexColors: THREE.VertexColors })
               if (child.geometry) child.geometry.applyMatrix(matrix);
             })
             resolve(gltf);
           }, reject)
 
         } catch ( e ) {
+          console.error(e)
 
           // For SyntaxError or TypeError, return a generic failure message.
           reject( e.constructor === Error ? e : new Error( 'THREE.GLTFLoader: Unable to parse model.' ) )
