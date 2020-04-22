@@ -119,7 +119,7 @@ AFRAME.registerComponent('google-poly', {
     var getUrlPromise = promiseCache.get(url)
     if (!getUrlPromise) {
 */
-      return getUrlPromise = fetch(url).then(function (response) {
+      return fetch(url).then(function (response) {
 
         // parse response
         return response.json().catch((error) => {
