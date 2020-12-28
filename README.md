@@ -14,6 +14,7 @@ For [A-Frame](https://aframe.io).
 | apiKey | Google Poly API Key |               |
 | src | Google Poly Model Identifier |               |
 | normalize | Scale the geometry to a unit of 1 and translate the geometry to `0 0 0` | `true` |
+| cache | Cache or load the cached model using [localforage](https://localforage.github.io/localForage) to prevent downloading from Google Poly Servers | `true` |
 
 ### Installation
 
@@ -24,8 +25,8 @@ Install and use by directly including the [browser files](dist):
 ```html
 <head>
   <title>My A-Frame Scene</title>
-  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-  <script src="https://unpkg.com/aframe-google-poly-component@1.0.0/dist/aframe-google-poly-component.min.js"></script>
+  <script src="https://aframe.io/releases/1.1.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-google-poly-component@2.0.0/dist/aframe-google-poly-component.min.js"></script>
 </head>
 
 <body>

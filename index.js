@@ -7,6 +7,8 @@ if (typeof AFRAME === 'undefined') {
 const POLY_API_URL = 'https://poly.googleapis.com/v1/assets/'
 
 require('./lib/LegacyGLTFLoader')
+require('./lib/GLTFExporter')
+const localforage = require('localforage')
 
 /**
  * Google Poly component for A-Frame.
@@ -21,7 +23,12 @@ AFRAME.registerComponent('google-poly', {
     normalize: {
       type: 'boolean',
       default: true
+    },
+    cache: {
+      type: 'boolean',
+      default: true
     }
+
   },
 
   multiple: false,
@@ -39,28 +46,70 @@ AFRAME.registerComponent('google-poly', {
 
     this.remove()
 
-    this.getGLTFUrl(data.src, data.apiKey)
-      .then(this.loadPolyModel)
-      .then(gltfModel => {
+    localforage.getItem(data.src).then(value => {
+      const useCached = data.cache && value !== null;
+      const cachedModel = value;
 
-        this.model = gltfModel.scene || gltfModel.scenes[0]
-        this.model.animations = gltfModel.animations
+      if (!useCached) {
+        this.getGLTFUrl(data.src, data.apiKey)
+          .then(this.loadPolyModel)
+          .then(gltfModel => {
+            this.processModel(gltfModel, true)
+          })
+          .catch(err => {
+
+            console.error('ERROR loading Google Poly model from "' + data.src +'" : ' + err)
+            el.emit('model-error', err)
+
+          })
+      } else {
+        console.log('using cached', cachedModel)
+        const loader = new THREE.GLTFLoader();
+        loader.parse(cachedModel,'', gltfModel => {
+          this.processModel(gltfModel, false);
+        })
+      }
+    })
+  
+  },
+
+  processModel: function (gltfModel, cacheable) {
+    const data = this.data;
+    const el = this.el;
+
+        const model = gltfModel.scenes ? (gltfModel.scene || gltfModel.scenes[0]) : gltfModel; 
+        this.model = model;
 
         el.setObject3D('mesh', this.model)
         //el.emit('model-loaded', {format: 'gltf', model: this.model})
+        if (data.cache && cacheable) {
+          console.log('caching model', data.src)
+          const gltfExporter = new THREE.GLTFExporter();
+          const options = {
+            //onlyVisible: false,
+            truncateDrawRange: false,
+            binary: false, // glb does not work
+            embedImages: true,
+            maxTextureSize: 4096
+          };
+          new Promise((resolve) => {
+            gltfExporter.parse( model, result => {
+              const output = JSON.stringify(result, null, 2);
+              resolve(output)
+            }, options );
+          }).then(res => {
+
+            localforage.setItem(data.src, res).then(value => {
+              console.log('stored', value)
+            }).catch(err => {
+              console.log(err)
+            })
+          })
+        } 
         if (data.normalize) {
           this.normalize()
         }
         el.emit('model-loaded')
-
-      })
-      .catch(err => {
-
-        console.error('ERROR loading Google Poly model from "' + data.src +'" : ' + err)
-        el.emit('model-error', err)
-
-      })
-  
   },
 
   normalize: function() {
@@ -148,7 +197,6 @@ AFRAME.registerComponent('google-poly', {
       loader.setResponseType( 'arraybuffer' )
       loader.load( url, data => {
         try {
-          console.log('loading', url, format)
           const gltfLoader = format === 'GLTF' ? new THREE.LegacyGLTFLoader() : new THREE.GLTFLoader();
           const path = THREE.LoaderUtils.extractUrlBase(url)
 
