@@ -113,44 +113,28 @@ AFRAME.registerComponent('google-poly', {
 
   getGLTFUrl: function(id, apiKey) {
     const url = POLY_API_URL + id + '/?key=' + apiKey;
+    return fetch(url).then(function (response) {
 
-    // try cache
-     /*
-    var getUrlPromise = promiseCache.get(url)
-    if (!getUrlPromise) {
-*/
-      return fetch(url).then(function (response) {
-
-        // parse response
-        return response.json().catch((error) => {
-          // handle JSON parsing error
-          console.log('ERROR parsing Google Poly API server response JSON.\nRequested Model: "' + url + '"\nError: "' + JSON.stringify(error) + '"')
-          return Promise.reject('Google Poly API server error. Check console for details.')
-        }).then((info) => {
-          if (info.error !== undefined) {
-            return Promise.reject('Poly API error: ' + info.error.message)
-          }
-          const format = info.formats.find( format => format.formatType === 'GLTF' || format.formatType === 'GLTF2' );
-          if ( format ) {
-            const r = info.presentationParams.orientingRotation;
-            const quaternion = new THREE.Quaternion(r.x || 0, r.y || 0, r.z || 0, r.w || 1);
-            return {url: format.root.url, quaternion: quaternion, format: format.formatType}
-          } else {
-            return Promise.reject('Poly asset id:' + id + ' not provided in GLTF or GLTF2 format.')
-          }
-        })
-
+      // parse response
+      return response.json().catch((error) => {
+        // handle JSON parsing error
+        console.log('ERROR parsing Google Poly API server response JSON.\nRequested Model: "' + url + '"\nError: "' + JSON.stringify(error) + '"')
+        return Promise.reject('Google Poly API server error. Check console for details.')
+      }).then((info) => {
+        if (info.error !== undefined) {
+          return Promise.reject('Poly API error: ' + info.error.message)
+        }
+        const format = info.formats.find( format => format.formatType === 'GLTF' || format.formatType === 'GLTF2' );
+        if ( format ) {
+          const r = info.presentationParams.orientingRotation;
+          const quaternion = new THREE.Quaternion(r.x || 0, r.y || 0, r.z || 0, r.w || 1);
+          return {url: format.root.url, quaternion: quaternion, format: format.formatType}
+        } else {
+          return Promise.reject('Poly asset id:' + id + ' not provided in GLTF or GLTF2 format.')
+        }
       })
 
-    /*
-      // add to cache
-      promiseCache.add(url, getUrlPromise)
-
-    }
-
-    return getUrlPromise
-    */
-
+    })
   },
   loadPolyModel: function(data, onProgress) {
     const url = data.url;
@@ -178,10 +162,8 @@ AFRAME.registerComponent('google-poly', {
 
         } catch ( e ) {
           console.error(e)
-
           // For SyntaxError or TypeError, return a generic failure message.
           reject( e.constructor === Error ? e : new Error( 'THREE.GLTFLoader: Unable to parse model.' ) )
-
         }
 
       }, onProgress, reject )
